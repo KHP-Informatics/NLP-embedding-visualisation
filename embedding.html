@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+<meta charset="utf-8">
+
+<!-- load cluster info -->
+<script src="cluster_info.js"></script>
+
+<!-- Load d3.js -->
+<script src="https://d3js.org/d3.v4.js"></script>
+
+<!-- CSS only -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-gH2yIJqKdNHPEq0n4Mqa/HGKIhSkIHeL5AyhkYV8i59U5AR6csBvApHHNl/vI1Bx" crossorigin="anonymous">
+
+</head>
+<body>
+	<div class="container">
+
+		<nav class="navbar navbar-expand-lg navbar-light bg-light">
+			<div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+			  <div class="navbar-nav">
+				<a class="nav-item nav-link" href="/">Home</a>
+				<a class="nav-item nav-link active" href="/embedding.html">Embedding</span></a>
+				<a class="nav-item nav-link" href="/treemap.html">Treemap v1</a>
+				<a class="nav-item nav-link" href="/treemap_no-other.html">Treemap v2</a>
+			  </div>
+			</div>
+		  </nav>
+
+		<div class="row">
+			<h1 class="display-1">Hospital-wide Natural Language Processing summarising health data of 1 million patients over a decade</h1>
+			<h3>Supplementary Figure</h3>
+			<p>This page contains an interactive visualisation of the patient embedding from the paper "Hospital-wide Natural Language Processing summarising health data of 1 million patients over a decade".</p>
+
+			<p>Click a cluster to see more details in the panel on the right. You can zoom and pan in the figure using the mouse.</p>
+		</div>
+		<div class="row">
+			<!--  -->
+			<div class="col-md-6">
+				<div id="dataviz_axisZoom"></div>
+			</div>
+			<div class="col-md">
+				<div>
+
+					<div class="card mb-3">
+						<div class="card-header">
+							<h5>Cluster Details</h5>
+						  </div>
+						<div class="card-body">
+						  <p class="card-text">
+							<p>Cluster number: <span id="ui-cluster-num"></span></p>
+							<p>Patients in cluster: <span id="ui-patient-num"></span></p>
+							<p>Top 5 SNOMED codes:</p>
+							<div id="ui-snomed-list">
+								<ol id="ui-snomed-ol"></ol>
+							</div>
+						</p>
+						</div>
+					  </div>
+
+					
+				
+				</div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col">
+					  <h5>Further Details</h5>
+					  <p>Clustering of patients based on SNOMED disorder codes detected in free text.
+						A sample of 100,000 patients was embedded based on normalised annotation counts for all SNOMED disorder codes detected in at least 1000 patients at King's College Hospital. 
+						These vectors were reduced to 50 dimensions using PCA then to 2 dimensions using t-SNE. Colour indicates cluster membership (50 clusters) assigned by agglomerative clustering with Ward linkage.
+					</p>
+					<p>The prevalence of SNOMED codes is calculated for each cluster and the count of each code is propagated up the SNOMED ontology to all parents. The following SNOMED codes are then removed as they are uninformative (most have 100% prevalence in all clusters as they are high level parent codes): 138875005, 64572001, 301857004, 123946008, 118234003, 404684003, 362965005. When a cluster is selected, up to 5 codes are shown. These are the most prevalent codes that are relevant to at least 50% of the patients in the cluster.</p>
+					<p>
+						For performance reasons, this visualisation is further subsampled to 20% of the original data, stratified by cluster.
+					</p>
+			</div>
+		</div>
+	</div>
+<!-- Create a div where the circle will take place -->
+
+
+
+<script>
+	//thanks to https://d3-graph-gallery.com/graph/interactivity_zoom.html
+
+	function set_cluster_ui(cluster){
+		c = cluster.toString()
+		document.getElementById('ui-cluster-num').innerText = c
+		cl = cluster_info[c]
+		console.log(cl)
+		document.getElementById('ui-patient-num').innerText = cl.size
+
+		document.getElementById('ui-snomed-ol').innerHTML =
+			cl.top
+				.map(txt => `<li>${txt}</li>`)
+				.join('');
+	}
+
+	// set the dimensions and margins of the graph
+	var margin = {top: 10, right: 30, bottom: 40, left: 60},
+		width = 600 - margin.left - margin.right,
+		height = 600 - margin.top - margin.bottom;
+	
+	// append the SVG object to the body of the page
+	var SVG = d3.select("#dataviz_axisZoom")
+	  .append("svg")
+		.attr("width", width + margin.left + margin.right)
+		.attr("height", height + margin.top + margin.bottom)
+	  .append("g")
+		.attr("transform",
+			  "translate(" + margin.left + "," + margin.top + ")");
+	
+	//Read the data
+	d3.csv("data_balanced_sample.csv", function(data) {
+	
+	  // Add X axis
+	  var x = d3.scaleLinear()
+		.domain([-110, 110])
+		.range([ 0, width ]);
+	  var xAxis = SVG.append("g")
+		.attr("transform", "translate(0," + height + ")")
+		.call(d3.axisBottom(x));
+	
+	  // Add Y axis
+	  var y = d3.scaleLinear()
+		.domain([-110, 110])
+		.range([ height, 0]);
+	  var yAxis = SVG.append("g")
+		.call(d3.axisLeft(y));
+	
+	  // Add a clipPath: everything out of this area won't be drawn.
+	  var clip = SVG.append("defs").append("SVG:clipPath")
+		  .attr("id", "clip")
+		  .append("SVG:rect")
+		  .attr("width", width )
+		  .attr("height", height )
+		  .attr("x", 0)
+		  .attr("y", 0);
+	
+	  // Create the scatter variable: where both the circles and the brush take place
+	  var scatter = SVG.append('g')
+		.attr("clip-path", "url(#clip)")
+	
+	  // Add circles
+	  scatter
+		.selectAll("circle")
+		.data(data)
+		.enter()
+		.append("circle")
+			
+		  .attr("cx", function (d) { return x(d.x); } )
+		  .attr("cy", function (d) { return y(d.y); } )
+		  .attr("r", 4)
+		  .style("stroke","#444")
+		  .attr("fill", function(d) {
+				return "rgb("+d.r+","+d.g+","+d.b+")"
+			})
+		  .style("pointer-events","visible")
+		  .on("click", function(d, i) {
+				set_cluster_ui(d.cluster)
+				})
+		 //.style("opacity", 0.5)
+
+	SVG.call(d3.zoom()
+      .extent([[0, 0], [width, height]])
+      .scaleExtent([1, 8])
+      .on("zoom", updateChart));
+	
+		 
+	
+	  // Set the zoom and Pan features: how much you can zoom, on which part, and what to do when there is a zoom
+	  var zoom = d3.zoom()
+		  .scaleExtent([.5, 100])  // This control how much you can unzoom (x0.5) and zoom (x20)
+		  .extent([[0, 0], [width, height]])
+		  .clickDistance(5)
+		  .on("zoom", updateChart);
+	
+	  // This add an invisible rect on top of the chart area. This rect can recover pointer events: necessary to understand when the user zoom
+	//   SVG.append("rect")
+	// 	  .attr("width", width)
+	// 	  .attr("height", height)
+	// 	  .style("fill", "none")
+	// 	  .style("pointer-events", "all")
+	// 	  .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
+	// 	  .call(zoom)
+	// 	  .on("click", function(d, i) {
+	// 			console.log('click on overlay')
+	// 			});
+	  // now the user can zoom and it will trigger the function called updateChart
+
+	  // Add X axis label:
+		SVG.append("text")
+			.attr("text-anchor", "middle")
+			.attr("x", width/2)
+			.attr("y", height + margin.top + 20)
+			.text("Component 1");
+		
+		// Y axis label:
+		SVG.append("text")
+			.attr("text-anchor", "middle")
+			.attr("transform", "rotate(-90)")
+			.attr("y", -margin.left+20)
+			.attr("x", -width/2)
+			.text("Component 2")
+			
+	  // A function that updates the chart when the user zoom and thus new boundaries are available
+	  function updateChart() {
+	
+		// recover the new scale
+		var newX = d3.event.transform.rescaleX(x);
+		var newY = d3.event.transform.rescaleY(y);
+	
+		// update axes with these new boundaries
+		xAxis.call(d3.axisBottom(newX))
+		yAxis.call(d3.axisLeft(newY))
+	
+		// update circle position
+		scatter
+		  .selectAll("circle")
+		  .attr('cx', function(d) {return newX(d.x)})
+		  .attr('cy', function(d) {return newY(d.y)})
+		//   .on("click", function(d, i) {
+		// 		console.log('click',d)
+		// 		})
+	  }
+	
+	})
+	</script>
+	</body>
+</html>
