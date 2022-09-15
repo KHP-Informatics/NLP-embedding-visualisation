@@ -33,6 +33,9 @@ Hover over a concept to see the concept name and total annotation (the number of
 # Authors
 Daniel Bean, Zeljko Kraljevic, Anthony Shek, James Teo, Richard Dobson
 
+# Cite
+TBC
+
 # Acknowledgements
 This work uses data provided by patients and collected by the NHS as part of their care and support. We would like to thank the patients on the Kings Electronic Records Research Interface (KERRI), the NIHR Applied Research Centre South London, the NIHR Maudsley Biomedical Research Centre, the London AI Centre for Value-based Healthcare, the NHS AI Lab and Health Data Research (UK).
 
