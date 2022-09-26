@@ -3,6 +3,8 @@ This repo contains supplementary interactive visualisations for the paper
 
 The visualisations are available here: [https://khp-informatics.github.io/NLP-embedding-visualisation/](https://khp-informatics.github.io/NLP-embedding-visualisation/)
 
+The preprint paper is available here: [https://www.medrxiv.org/content/10.1101/2022.09.15.22279981v2](https://www.medrxiv.org/content/10.1101/2022.09.15.22279981v2)
+
 # Available visualisations
 ## Patient embedding
 [LINK](https://khp-informatics.github.io/NLP-embedding-visualisation/embedding.html)
@@ -34,7 +36,13 @@ Hover over a concept to see the concept name and total annotation (the number of
 Daniel Bean, Zeljko Kraljevic, Anthony Shek, James Teo, Richard Dobson
 
 # Cite
-TBC
+The preprint paper is available here: [https://www.medrxiv.org/content/10.1101/2022.09.15.22279981v2](https://www.medrxiv.org/content/10.1101/2022.09.15.22279981v2)
+
+Hospital-wide Natural Language Processing summarising the health data of 1 million patients
+
+Daniel Bean, Zeljko Kraljevic, Anthony Shek, James Teo, Richard Dobson
+
+medRxiv 2022.09.15.22279981; doi: https://doi.org/10.1101/2022.09.15.22279981
 
 # Acknowledgements
 This work uses data provided by patients and collected by the NHS as part of their care and support. We would like to thank the patients on the Kings Electronic Records Research Interface (KERRI), the NIHR Applied Research Centre South London, the NIHR Maudsley Biomedical Research Centre, the London AI Centre for Value-based Healthcare, the NHS AI Lab and Health Data Research (UK).
